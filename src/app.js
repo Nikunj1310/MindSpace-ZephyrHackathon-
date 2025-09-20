@@ -15,13 +15,9 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-// Import and use routes
-const authRoutes = require('./routes/auth.routes');
-app.use('/auth', authRoutes);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Server is running' });
-});
+// User-related routes (register, login, update, delete, etc.)
+const userRoutes = require('./routes/auth.routes');
+app.use('/api/users', userRoutes);
 
 module.exports = app;

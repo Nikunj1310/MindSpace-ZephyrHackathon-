@@ -47,8 +47,8 @@ const userSchema = new mongoose.Schema({
     currentMood: {
         type: Number,
         min: 1,
-        max: 10,
-        default: 5,
+        max: 5,
+        default: 3,
     },
     // Emoji representing user's current mood
     emoji: {
