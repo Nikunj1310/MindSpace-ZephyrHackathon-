@@ -5,6 +5,12 @@ import 'core/constants/routes.dart';
 import 'presentation/pages/auth/login_page.dart';
 import 'presentation/pages/auth/signup_page.dart';
 import 'presentation/pages/main_navigation_page.dart';
+import 'presentation/pages/home_page.dart';
+import 'presentation/pages/community/community_feed_page.dart';
+import 'presentation/pages/gamification/gamification_page.dart';
+import 'presentation/pages/chat/chat_page.dart';
+import 'presentation/pages/journal/journal_page.dart';
+import 'presentation/pages/settings/settings_page.dart';
 import 'presentation/widgets/auth_wrapper.dart';
 
 void main() {
@@ -27,8 +33,16 @@ class MindSpaceApp extends StatelessWidget {
       routes: {
         AppRoutes.login: (context) => const LoginPage(),
         AppRoutes.signup: (context) => const SignupPage(),
-        AppRoutes.home: (context) => const MainNavigationPage(),
+        AppRoutes.home: (context) => const HomePage(),
         AppRoutes.dashboard: (context) => const MainNavigationPage(),
+        AppRoutes.community: (context) => const CommunityFeedPage(),
+        AppRoutes.gamification: (context) => const GamificationPage(),
+        AppRoutes.chat: (context) => const ChatPage(),
+        AppRoutes.journal: (context) => const JournalPage(),
+        AppRoutes.settings: (context) => const SettingsPage(),
+        AppRoutes.admin:
+            (context) =>
+                const ChatPage(), // Admin panel uses chat page with admin features
       },
     );
   }

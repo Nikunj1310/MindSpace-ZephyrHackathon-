@@ -560,22 +560,22 @@ class _HomePageState extends ConsumerState<HomePage>
     // Navigate to specific pages
     switch (section) {
       case 'community':
-        Navigator.pushNamed(context, '/community');
+        Navigator.pushNamed(context, AppRoutes.community);
         break;
       case 'gamification':
-        Navigator.pushNamed(context, '/gamification');
+        Navigator.pushNamed(context, AppRoutes.gamification);
         break;
       case 'chat':
-        Navigator.pushNamed(context, '/chat');
+        Navigator.pushNamed(context, AppRoutes.chat);
         break;
       case 'journal':
-        Navigator.pushNamed(context, '/journal');
+        Navigator.pushNamed(context, AppRoutes.journal);
         break;
       case 'settings':
-        Navigator.pushNamed(context, '/settings');
+        Navigator.pushNamed(context, AppRoutes.settings);
         break;
       case 'admin':
-        Navigator.pushNamed(context, '/admin');
+        Navigator.pushNamed(context, AppRoutes.admin);
         break;
       default:
         print('Unknown section: $section');

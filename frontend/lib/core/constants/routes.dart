@@ -9,4 +9,5 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String gamification = '/gamification';
+  static const String admin = '/admin';
 }
