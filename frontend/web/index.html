@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="description" content="MindSpace - Your safe space for mental wellness. Connect, reflect, and grow with our supportive community.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MindSpace">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>MindSpace - Mental Wellness Platform</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Loading screen styles */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      background: #6B9EE5;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      opacity: 0.1;
+    }
+    .loading-text {
+      color: #2C3E50;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .loading-subtitle {
+      color: #6C7B7F;
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #E8E8E8;
+      border-top: 3px solid #6B9EE5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loading" class="loading">
+    <div class="loading-logo">
+      <div style="color: white; font-size: 40px;">🧠</div>
+    </div>
+    <div class="loading-text">MindSpace</div>
+    <div class="loading-subtitle">Loading your wellness journey...</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- 1) Bootstrap Flutter engine -->
+  <script src="flutter.js" defer></script>
+
+  <!-- 2) Your compiled app -->
+  <script src="main.dart.js" defer></script>
+
+  <!-- 3) Hide loader on first frame -->
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      document.getElementById('loading').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
