@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/routes.dart';
@@ -6,24 +7,23 @@ import '../../../core/theme/text_styles.dart';
 import '../../../core/utils/validators.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../../providers/auth_provider.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
+class _LoginPageState extends ConsumerState<LoginPage>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _animationController.dispose();
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -151,12 +151,20 @@ class _LoginPageState extends State<LoginPage>
       child: Column(
         children: [
           CustomTextField(
-            label: AppStrings.email,
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            validator: Validators.validateEmail,
+            label: "Username",
+            controller: _usernameController,
+            keyboardType: TextInputType.text,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your username';
+              }
+              if (value.length < 3) {
+                return 'Username must be at least 3 characters';
+              }
+              return null;
+            },
             prefixIcon: const Icon(
-              Icons.email_outlined,
+              Icons.person_outline,
               color: MindSpaceColors.primaryBlue,
             ),
           ),
@@ -175,7 +183,7 @@ class _LoginPageState extends State<LoginPage>
           CustomButton(
             text: AppStrings.signIn,
             onPressed: _handleEmailLogin,
-            isLoading: _isLoading,
+            isLoading: ref.watch(authStatusProvider) == AuthStatus.loading,
           ),
         ],
       ),
@@ -219,19 +227,36 @@ class _LoginPageState extends State<LoginPage>
 
   void _handleEmailLogin() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+      final authNotifier = ref.read(authNotifierProvider.notifier);
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        final response = await authNotifier.login(
+          _usernameController.text.trim(),
+          _passwordController.text,
+        );
 
-      setState(() => _isLoading = false);
-
-      // TODO: integrate backend email login
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-
-      // Navigate to dashboard on success
-      // Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+        if (mounted && response.success) {
+          // Navigate to dashboard on success
+          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+        } else if (mounted) {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 }

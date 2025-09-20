@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/routes.dart';
@@ -6,17 +7,19 @@ import '../../../core/theme/text_styles.dart';
 import '../../../core/utils/validators.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../../providers/auth_provider.dart';
 
-class SignupPage extends StatefulWidget {
+class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
 
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
-class _SignupPageState extends State<SignupPage>
+class _SignupPageState extends ConsumerState<SignupPage>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -24,7 +27,8 @@ class _SignupPageState extends State<SignupPage>
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  bool _isLoading = false;
+
+  String _selectedRole = 'user';
 
   @override
   void initState() {
@@ -42,6 +46,7 @@ class _SignupPageState extends State<SignupPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _usernameController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -202,7 +207,7 @@ class _SignupPageState extends State<SignupPage>
           CustomButton(
             text: AppStrings.signUp,
             onPressed: _handleSignup,
-            isLoading: _isLoading,
+            isLoading: ref.watch(authStatusProvider) == AuthStatus.loading,
           ),
           const SizedBox(height: 18),
           _buildFooter(),
@@ -216,6 +221,24 @@ class _SignupPageState extends State<SignupPage>
       key: _formKey,
       child: Column(
         children: [
+          CustomTextField(
+            label: "Username",
+            controller: _usernameController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a username';
+              }
+              if (value.length < 3 || value.length > 20) {
+                return 'Username must be between 3 and 20 characters';
+              }
+              return null;
+            },
+            prefixIcon: const Icon(
+              Icons.alternate_email,
+              color: MindSpaceColors.primaryBlue,
+            ),
+          ),
+          const SizedBox(height: 16),
           CustomTextField(
             label: AppStrings.fullName,
             controller: _nameController,
@@ -236,6 +259,8 @@ class _SignupPageState extends State<SignupPage>
               color: MindSpaceColors.primaryBlue,
             ),
           ),
+          const SizedBox(height: 16),
+          _buildRoleSelector(),
           const SizedBox(height: 16),
           CustomTextField(
             label: AppStrings.password,
@@ -263,6 +288,45 @@ class _SignupPageState extends State<SignupPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRoleSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: MindSpaceColors.textLight.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: DropdownButtonFormField<String>(
+        value: _selectedRole,
+        decoration: const InputDecoration(
+          labelText: 'Role',
+          border: InputBorder.none,
+          prefixIcon: Icon(
+            Icons.work_outline,
+            color: MindSpaceColors.primaryBlue,
+          ),
+        ),
+        items: const [
+          DropdownMenuItem(value: 'user', child: Text('User')),
+          DropdownMenuItem(value: 'mentor', child: Text('Mentor')),
+          DropdownMenuItem(value: 'admin', child: Text('Admin')),
+        ],
+        onChanged: (String? value) {
+          if (value != null) {
+            setState(() {
+              _selectedRole = value;
+            });
+          }
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a role';
+          }
+          return null;
+        },
       ),
     );
   }
@@ -302,10 +366,39 @@ class _SignupPageState extends State<SignupPage>
 
   void _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      setState(() => _isLoading = false);
-      // TODO: integrate backend signup
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+
+      try {
+        final response = await authNotifier.register(
+          userName: _usernameController.text.trim(),
+          fullName: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          role: _selectedRole,
+        );
+
+        if (mounted && response.success) {
+          // Navigate to dashboard on success
+          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+        } else if (mounted) {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 }

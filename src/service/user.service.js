@@ -1,11 +1,56 @@
 const userModel = require('../model/user.model');
 const JWTUtil = require('../utils/jwt.util');
+const bcrypt = require('bcrypt');
 // Assumes that the schema is correctly defined in user.controller.js
 // and that mongoose connection is established in database.js
+
 class UserService {
-    // Create a new user
+    // Helper method to generate mock user ID
+    static generateMockId() {
+        return Math.random().toString(36).substr(2, 24);
+    }
+
+    // Create a new user (works with both MongoDB and mock data)
     static async createUser(userData) {
         try {
+            // If using mock data
+            if (global.useMockData) {
+                // Check if user already exists
+                const existingUser = global.mockUsers.find(u => 
+                    u.userName === userData.userName || u.email === userData.email
+                );
+                
+                if (existingUser) {
+                    throw new Error('User already exists with this username or email');
+                }
+
+                // Hash password
+                const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+                // Create new user
+                const newUser = {
+                    _id: this.generateMockId(),
+                    userName: userData.userName,
+                    fullName: userData.fullName,
+                    email: userData.email,
+                    password: hashedPassword,
+                    role: userData.role || 'user',
+                    currentMood: userData.currentMood || 5,
+                    emoji: userData.emoji || "😐",
+                    joinedAt: new Date(),
+                    lastSeen: new Date(),
+                    streakCount: 0
+                };
+
+                global.mockUsers.push(newUser);
+                console.log(`✅ Mock user created: ${newUser.userName} (${newUser.role})`);
+                
+                // Return user without password
+                const { password, ...userWithoutPassword } = newUser;
+                return userWithoutPassword;
+            }
+
+            // Use MongoDB
             const user = new userModel(userData);
             return await user.save();
         } catch (error) {
@@ -64,20 +109,49 @@ class UserService {
 
     static async loginUser(userName, password){
         try{
-            const user = await userModel.findOne({userName}).exec();
-            if(!user)
-            {
-                throw new Error("Invalid username or password");
-            }
+            let user;
+            let isPasswordValid;
 
-            const isPasswordValid = await user.comparePassword(password);
-            if(!isPasswordValid)
-            {
-                throw new Error("Invalid username or password");
-            }
+            // If using mock data
+            if (global.useMockData) {
+                user = global.mockUsers.find(u => u.userName === userName);
+                if (!user) {
+                    throw new Error("Invalid username or password");
+                }
 
-            user.lastSeen = new Date();
-            await user.save();
+                // Compare password with bcrypt
+                isPasswordValid = await bcrypt.compare(password, user.password);
+                if (!isPasswordValid) {
+                    throw new Error("Invalid username or password");
+                }
+
+                // Update last seen
+                user.lastSeen = new Date();
+                console.log(`✅ Mock user logged in: ${user.userName} (${user.role})`);
+
+                // Create user object without password
+                const { password: _, ...userObject } = user;
+                user = { ...userObject, _id: user._id };
+            } else {
+                // Use MongoDB
+                user = await userModel.findOne({userName}).exec();
+                if(!user) {
+                    throw new Error("Invalid username or password");
+                }
+
+                isPasswordValid = await user.comparePassword(password);
+                if(!isPasswordValid) {
+                    throw new Error("Invalid username or password");
+                }
+
+                user.lastSeen = new Date();
+                await user.save();
+
+                // Convert to object and remove password
+                const userObject = user.toObject();
+                delete userObject.password;
+                user = userObject;
+            }
 
             // Generate JWT tokens
             const tokenPayload = {
@@ -89,13 +163,9 @@ class UserService {
 
             const accessToken = JWTUtil.generateToken(tokenPayload);
             const refreshToken = JWTUtil.generateRefreshToken(tokenPayload);
-
-            // Return user data with tokens
-            const userObject = user.toObject();
-            delete userObject.password; // Remove password field before returning
             
             return {
-                user: userObject,
+                user: user,
                 tokens: {
                     accessToken,
                     refreshToken
