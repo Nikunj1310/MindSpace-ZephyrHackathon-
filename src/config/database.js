@@ -25,4 +25,7 @@ const connectDB = async() => {
     }
 }
 
-module.exports.connectDB = connectDB;
+module.exports.connectDB = {
+    connectDB,
+    mongoose
+};
