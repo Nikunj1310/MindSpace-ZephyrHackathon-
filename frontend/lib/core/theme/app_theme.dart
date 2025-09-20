@@ -112,7 +112,7 @@ class AppTheme {
       ),
 
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: MindSpaceColors.cardBackground,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.1),
