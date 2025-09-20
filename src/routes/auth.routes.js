@@ -10,8 +10,8 @@ router.post('/refresh-token', UserController.refreshToken);
 
 // Protected routes (authentication required)
 router.get('/profile/:userId', 
-    AuthMiddleware.verifyToken, 
-    AuthMiddleware.requireOwnershipOrAdmin, 
+    AuthMiddleware.verifyToken,
+    AuthMiddleware.requireOwnershipOrAdmin,
     UserController.getUserById
 );
 
