@@ -43,6 +43,8 @@ class AuthService {
   static Future<AuthResponse> register(RegisterRequest registerRequest) async {
     try {
       final url = Uri.parse(ApiConfig.registerUrl);
+      print('Attempting to register at: $url');
+      print('Request payload: ${jsonEncode(registerRequest.toJson())}');
 
       final response = await http
           .post(
@@ -51,6 +53,9 @@ class AuthService {
             body: jsonEncode(registerRequest.toJson()),
           )
           .timeout(ApiConfig.timeout);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       final responseData = jsonDecode(response.body);
 
@@ -64,6 +69,7 @@ class AuthService {
         );
       }
     } catch (e) {
+      print('Registration error: $e');
       return AuthResponse(
         success: false,
         message: 'Network error occurred',

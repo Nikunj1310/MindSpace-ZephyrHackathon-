@@ -6,10 +6,11 @@ const app = express();
 
 // Configure CORS to allow Flutter web app
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+    origin: true, // Allow all origins during development
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 
 app.use(bodyParser.json());
